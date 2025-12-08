@@ -3,665 +3,676 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>球館臨打分籤系統</title>
+    <title>球館分籤系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons (UMD) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; text-align: center; border-radius: 16px 16px 0 0; }
-        .header h1 { font-size: 26px; margin-bottom: 6px; }
-        .header p { font-size: 14px; opacity: 0.9; }
-        .content { padding: 24px; }
-        .section { margin-bottom: 24px; }
-        .section-title { font-size: 17px; font-weight: 600; color: #333; margin-bottom: 12px; padding-left: 10px; border-left: 4px solid #667eea; }
-        .import-container { display: flex; gap: 10px; margin-bottom: 12px; }
-        textarea { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; min-height: 160px; font-family: inherit; }
-        textarea:focus { outline: none; border-color: #667eea; }
-        .import-btn, .draw-btn { padding: 12px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .import-btn { height: fit-content; }
-        .draw-btn { width: 100%; }
-        .binding-groups { margin-bottom: 12px; }
-        .binding-group { background: #fbbf24; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-        .binding-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .binding-group-title { font-weight: 600; color: white; font-size: 14px; }
-        .gender-stats { background: rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 10px; font-size: 12px; color: white; font-weight: 600; }
-        .remove-group-btn { background: rgba(255,255,255,0.3); color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-        .binding-members { display: flex; flex-wrap: wrap; gap: 6px; }
-        .binding-member { background: rgba(255,255,255,0.9); padding: 5px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; font-size: 12px; }
-        .binding-member .gender-badge { width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; font-size: 9px; font-weight: 600; }
-        .gender-badge.female { background: #fce7f3; color: #ec4899; }
-        .gender-badge.male { background: #dbeafe; color: #3b82f6; }
-        .remove-member-btn { background: #ef4444; color: white; border: none; width: 14px; height: 14px; border-radius: 50%; font-size: 10px; cursor: pointer; line-height: 1; }
-        .full-team-warning { margin-top: 6px; padding: 6px 10px; background: rgba(255,255,255,0.3); border-radius: 6px; color: white; font-size: 11px; }
-        .players-display { display: flex; flex-direction: column; gap: 16px; }
-        .gender-group { background: #f9fafb; border-radius: 10px; padding: 14px; border: 2px solid #e5e7eb; }
-        .gender-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
-        .gender-group-title { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
-        .gender-icon { width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; font-size: 13px; }
-        .gender-icon.female { background: #fce7f3; color: #ec4899; }
-        .gender-icon.male { background: #dbeafe; color: #3b82f6; }
-        .gender-count { font-size: 12px; font-weight: 600; color: #666; background: white; padding: 3px 10px; border-radius: 12px; }
-        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-        .player-chip { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: white; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 13px; position: relative; }
-        .player-chip.binding-active { background: #667eea; border-color: #667eea; }
-        .player-chip.binding-active .player-name { color: white; }
-        .player-chip.selectable { cursor: pointer; }
-        .player-chip.selected { background: #ddd6fe; border-color: #7c3aed; }
-        .player-chip .gender-badge { width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 50%; font-size: 10px; font-weight: 600; }
-        .player-chip .player-name { flex: 1; color: #333; font-weight: 500; }
-        .link-icon { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; cursor: pointer; color: #9ca3af; }
-        .add-icon { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; }
-        .binding-control-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid #e5e7eb; padding: 14px; display: none; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 -4px 12px rgba(0,0,0,0.1); z-index: 100; }
-        .binding-control-bar.active { display: flex; }
-        .binding-info { font-size: 14px; font-weight: 600; color: #667eea; }
-        .binding-control-btns { display: flex; gap: 8px; }
-        .binding-control-btns button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .binding-confirm-btn { background: #10b981; color: white; }
-        .binding-cancel-btn { background: #f3f4f6; color: #666; }
-        .control-group { margin-bottom: 16px; }
-        .control-group label { font-size: 14px; font-weight: 500; color: #555; margin-bottom: 6px; display: block; }
-        .control-group select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; }
-        .control-group select:focus { outline: none; border-color: #667eea; }
-        .results { display: none; }
-        .teams-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .team-card { background: #f9fafb; border-radius: 12px; padding: 20px; border: 2px solid #e5e7eb; }
-        .team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb; }
-        .team-name { font-size: 22px; font-weight: 700; color: #667eea; }
-        .team-count { background: #667eea; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; }
-        .team-members { list-style: none; }
-        .team-members li { padding: 10px 0; color: #555; font-size: 14px; border-bottom: 1px solid #e5e7eb; }
-        .team-members li:last-child { border-bottom: none; }
-        .member-gender { display: inline-block; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; font-size: 10px; font-weight: 600; margin-right: 6px; }
-        .member-gender.female { background: #fce7f3; color: #ec4899; }
-        .member-gender.male { background: #dbeafe; color: #3b82f6; }
-        .info-box { background: #eff6ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 14px; margin-top: 16px; }
-        .info-box h4 { color: #1e40af; font-size: 15px; margin-bottom: 8px; }
-        .info-box p { color: #1e40af; font-size: 13px; line-height: 1.6; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
-        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: white; border-radius: 12px; padding: 24px; }
-        .alert-icon { font-size: 40px; text-align: center; margin-bottom: 12px; }
-        .alert-card h3 { font-size: 18px; color: #333; margin-bottom: 10px; text-align: center; }
-        .alert-card p { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 16px; text-align: center; }
-        .alert-card.warning { border: 3px solid #ef4444; border-radius: 12px; padding: 16px; }
-        .alert-buttons { display: flex; gap: 8px; justify-content: center; }
-        .alert-buttons button { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .alert-confirm-btn { background: #667eea; color: white; }
-        .alert-cancel-btn { background: #f3f4f6; color: #666; }
-
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header { padding: 20px; }
-            .header h1 { font-size: 22px; }
-            .content { padding: 16px; }
-            .section { margin-bottom: 20px; }
-            .section-title { font-size: 16px; }
-            .import-container { flex-direction: column; }
-            .import-btn { width: 100%; padding: 14px; }
-            textarea { min-height: 140px; }
-            .players-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-            .player-chip { padding: 10px 12px; }
-            .gender-group { padding: 12px; }
-            .binding-control-bar { padding: 18px 12px; }
-            .binding-control-btns button { padding: 10px 18px; font-size: 14px; }
-            .draw-btn { padding: 16px; font-size: 16px; }
-            .teams-grid { grid-template-columns: 1fr; gap: 16px; }
-            .team-card { padding: 16px; }
-            .modal-content { width: 95%; padding: 20px; }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #efefef;
+            color: #474747;
+            min-height: 100vh;
         }
-
-        @media (max-width: 480px) {
-            .header h1 { font-size: 20px; }
-            .players-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
-            .player-chip { padding: 8px 10px; font-size: 12px; }
-            .binding-info { font-size: 13px; }
-            .gender-group-title { font-size: 14px; }
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #d4d4d4;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #a3a3a3;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
     </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/"
+  }
+}
+</script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>球館臨打分籤系統</h1>
-            <p>簡單 · 快速 · 公平</p>
-        </div>
+    <div id="root"></div>
 
-        <div class="content">
-            <div class="section">
-                <div class="section-title">參加者名單 (18人)</div>
-                <div class="import-container">
-                    <textarea id="importText" placeholder="請貼上名單，格式：姓名+性別（例如：王小明男、Amy女）&#10;每行一位參加者，共18人&#10;支援 Tab 分隔（從 Excel 複製）"></textarea>
-                    <button class="import-btn" onclick="importPlayers()">匯入名單</button>
-                </div>
-                
-                <div class="binding-groups" id="bindingGroups"></div>
-                <div class="players-display" id="playersDisplay"></div>
-            </div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        // lucide icons are available globally via lucide.icons
+        // We need to create wrapper components for them to use in React like <Users />
+        const Icon = ({ name, className, ...props }) => {
+            const iconName = name.charAt(0).toUpperCase() + name.slice(1);
+            // Lucide icons are not React components in the UMD build, they are SVG strings or create functions
+            // For simplicity in this standalone version, we will use a simple SVG replacement or text if icon fails
+            // But actually, lucide-react is hard to use via CDN directly in Babel.
+            // Let's use a simpler approach: Render SVG icons manually using lucide.createIcons logic or just SVGs
+            
+            // Wait, to make this easier for a single file drop, let's just define simple SVG components directly here.
+            // This avoids dependency hell with CDN modules.
+            return null;
+        };
 
-            <div class="section">
-                <div class="section-title">場次設定</div>
-                <div class="control-group">
-                    <label>場次類別</label>
-                    <select id="matchType">
-                        <option value="女網混排">女網混排</option>
-                        <option value="男網混排">男網混排</option>
-                    </select>
-                </div>
-            </div>
+        // Defining Icons manually to ensure zero dependency issues
+        const UsersIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        );
+        const LinkIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        );
+        const UnlinkIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="16" y1="2" y2="2"/><line x1="8" x2="16" y1="22" y2="22"/><line x1="2" x2="2" y1="8" y2="16"/><line x1="22" x2="22" y1="8" y2="16"/></svg> // Simplified unlink
+        );
+        const Wand2Icon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
+        );
+        const RefreshCcwIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        );
+        const InfoIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        );
+        const AlertCircleIcon = ({className}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        );
 
-            <div class="section">
-                <button class="draw-btn" onclick="drawTeams()">
-                    <span id="drawBtnText">開始分籤</span>
-                </button>
-            </div>
+        // --- Helper Functions ---
+        const generateId = () => Math.random().toString(36).substr(2, 9);
 
-            <div class="results" id="results">
-                <div class="section-title">分籤結果</div>
-                <div class="teams-grid" id="teamsGrid"></div>
-                
-                <div class="info-box">
-                    <h4>📋 賽制說明</h4>
-                    <p>抽籤後請 A、B 兩隊先上場進行比賽。<br>C 隊成員請協助計分，並準備下一輪輪替。</p>
-                </div>
-            </div>
-        </div>
-    </div>
+        const parsePlayerInput = (text) => {
+            const lines = text.split(/\n+/).filter((line) => line.trim());
+            const players = [];
 
-    <div class="binding-control-bar" id="bindingControlBar">
-        <div class="binding-info" id="bindingInfo">已選擇 0 人</div>
-        <div class="binding-control-btns">
-            <button class="binding-cancel-btn" onclick="cancelBinding()">取消</button>
-            <button class="binding-confirm-btn" onclick="confirmBinding()">確認綁定</button>
-        </div>
-    </div>
+            lines.forEach((line, index) => {
+                const cleanLine = line.trim();
+                let name = "";
+                let gender = null;
 
-    <div class="modal" id="alertModal">
-        <div class="modal-content">
-            <div class="alert-card" id="alertCard">
-                <div class="alert-icon" id="alertIcon">ℹ️</div>
-                <h3 id="alertTitle">提示</h3>
-                <p id="alertMessage"></p>
-                <div class="alert-buttons" id="alertButtons">
-                    <button class="alert-confirm-btn" onclick="closeAlert()">確認</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let players = [];
-        let bindingGroups = [];
-        let bindingMode = false;
-        let currentBindingPlayer = null;
-        let selectedPlayers = [];
-        let hasShownBindingReminder = false;
-
-        function importPlayers() {
-            const text = document.getElementById('importText').value.trim();
-            const lines = text.split('\n').filter(line => line.trim());
-
-            if (lines.length !== 18) {
-                showAlert('請確認名單共18人，目前有' + lines.length + '人', '⚠️');
-                return;
-            }
-
-            players = [];
-
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trim();
-                let name, gender;
-                let parts = line.split(/[\t\s]+/);
-                
-                if (parts.length >= 2) {
-                    let lastPart = parts[parts.length - 1];
-                    if (lastPart === '男' || lastPart === '女') {
-                        name = parts.slice(0, -1).join(' ');
-                        gender = lastPart;
-                    } else {
-                        let lineNoSpace = line.replace(/\s+/g, '');
-                        if (lineNoSpace.endsWith('男')) {
-                            name = line.slice(0, line.lastIndexOf('男')).trim();
-                            gender = '男';
-                        } else if (lineNoSpace.endsWith('女')) {
-                            name = line.slice(0, line.lastIndexOf('女')).trim();
-                            gender = '女';
-                        } else {
-                            showAlert('第' + (i + 1) + '行格式錯誤：' + line, '⚠️');
-                            return;
+                if (cleanLine.endsWith("男")) {
+                    name = cleanLine.slice(0, -1).trim();
+                    gender = "男";
+                } else if (cleanLine.endsWith("女")) {
+                    name = cleanLine.slice(0, -1).trim();
+                    gender = "女";
+                } else {
+                    const parts = cleanLine.split(/[\t\s]+/);
+                    if (parts.length >= 2) {
+                        const last = parts[parts.length - 1];
+                        if (last === '男' || last === '女') {
+                            gender = last;
+                            name = parts.slice(0, -1).join(' ');
                         }
                     }
-                } else {
-                    let lineNoSpace = line.replace(/\s+/g, '');
-                    if (lineNoSpace.endsWith('男')) {
-                        name = line.slice(0, line.lastIndexOf('男')).trim();
-                        gender = '男';
-                    } else if (lineNoSpace.endsWith('女')) {
-                        name = line.slice(0, line.lastIndexOf('女')).trim();
-                        gender = '女';
-                    } else {
-                        showAlert('第' + (i + 1) + '行格式錯誤：' + line, '⚠️');
+                }
+
+                if (name && gender) {
+                    players.push({
+                        id: `p-${index}-${generateId()}`,
+                        name,
+                        gender,
+                    });
+                }
+            });
+
+            return players;
+        };
+
+        const GenderIcon = ({ gender }) => (
+            <span className={`
+                flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold mr-2
+                ${gender === "女" 
+                    ? "bg-[#D4A2A6] text-white" 
+                    : "bg-[#7F8F8E] text-white" 
+                }
+            `}>
+                {gender === "女" ? "♀" : "♂"}
+            </span>
+        );
+
+        const PlayerCard = ({ player, isSelected, onClick, bindingGroups, onDissolve }) => {
+            const group = bindingGroups.find(g => g.id === player.groupId);
+            
+            const groupColors = [
+                "border-[#D4A2A6] bg-[#fff0f2]",
+                "border-[#7F8F8E] bg-[#f0f2f2]",
+                "border-[#d4bca2] bg-[#fbf7f2]",
+                "border-[#a2b8d4] bg-[#f2f6fb]",
+                "border-[#bca2d4] bg-[#f8f2fb]",
+            ];
+            
+            // Just pick a color based on group ID hash or simple index if possible
+            // Here we don't have index easily, let's just hash the ID char code
+            let colorIdx = 0;
+            if (group) {
+                const sum = group.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                colorIdx = sum % groupColors.length;
+            }
+
+            const activeStyle = group 
+                ? groupColors[colorIdx]
+                : "border-gray-200 bg-white hover:border-gray-400";
+
+            const genderColor = player.gender === "女" ? "text-[#D4A2A6]" : "text-[#7F8F8E]";
+            const borderColor = isSelected 
+                ? (player.gender === "女" ? "!border-[#D4A2A6] ring-1 ring-[#D4A2A6]" : "!border-[#7F8F8E] ring-1 ring-[#7F8F8E]")
+                : "";
+
+            return (
+                <div
+                    onClick={onClick}
+                    className={`
+                        relative p-3 rounded border cursor-pointer transition-all duration-200 select-none
+                        flex flex-col items-center justify-center min-h-[80px]
+                        ${activeStyle}
+                        ${borderColor}
+                        ${isSelected ? "bg-opacity-50" : ""}
+                    `}
+                >
+                    <div className="flex items-center gap-1 mb-1">
+                            <span className={`text-[10px] font-bold ${genderColor}`}>
+                                {player.gender === "女" ? "♀" : "♂"}
+                            </span>
+                    </div>
+                    <div className={`text-sm font-medium truncate w-full text-center ${isSelected ? genderColor : "text-[#474747]"}`}>
+                        {player.name}
+                    </div>
+                    
+                    {group && !isSelected && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onDissolve(group.id); }}
+                            className="absolute top-1 right-1 text-gray-300 hover:text-red-400 p-1"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [inputText, setInputText] = useState("");
+            const [players, setPlayers] = useState([]);
+            const [bindingGroups, setBindingGroups] = useState([]);
+            const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+            const [matchType, setMatchType] = useState("女網混排");
+            const [teams, setTeams] = useState([]);
+            const [view, setView] = useState("input");
+            const [alertMsg, setAlertMsg] = useState(null);
+
+            const femalePlayers = players.filter(p => p.gender === '女');
+            const malePlayers = players.filter(p => p.gender === '男');
+
+            const handleImport = () => {
+                const newPlayers = parsePlayerInput(inputText);
+                if (newPlayers.length === 0 && inputText.trim().length > 0) {
+                    setAlertMsg({ title: "格式錯誤", msg: "無法識別名單，請使用「姓名+性別」格式，例如：王小明男" });
+                    return;
+                }
+                
+                setPlayers(newPlayers);
+                setBindingGroups([]);
+                setSelectedPlayerIds([]);
+                setTeams([]);
+            };
+
+            const toggleSelection = (playerId) => {
+                const player = players.find(p => p.id === playerId);
+                if (player?.groupId) return; 
+
+                setSelectedPlayerIds((prev) =>
+                prev.includes(playerId)
+                    ? prev.filter((id) => id !== playerId)
+                    : [...prev, playerId]
+                );
+            };
+
+            const createGroup = () => {
+                const count = selectedPlayerIds.length;
+                
+                if (![2, 3, 6].includes(count)) {
+                    setAlertMsg({ 
+                        title: "綁定人數限制", 
+                        msg: `目前選擇了 ${count} 人。為了配合賽制（每隊6人），系統僅支援綁定 2人、3人 或 6人一組。` 
+                    });
+                    return;
+                }
+
+                const newGroupId = `g-${generateId()}`;
+                const newGroup = {
+                id: newGroupId,
+                members: [...selectedPlayerIds],
+                };
+
+                setBindingGroups([...bindingGroups, newGroup]);
+                setPlayers(players.map(p => selectedPlayerIds.includes(p.id) ? { ...p, groupId: newGroupId } : p));
+                setSelectedPlayerIds([]);
+            };
+
+            const dissolveGroup = (groupId) => {
+                setBindingGroups(bindingGroups.filter(g => g.id !== groupId));
+                setPlayers(players.map(p => p.groupId === groupId ? { ...p, groupId: undefined } : p));
+            };
+
+            const drawTeams = () => {
+                if (players.length < 12 || players.length > 18) {
+                    setAlertMsg({ 
+                        title: "人數限制", 
+                        msg: `目前共有 ${players.length} 人。系統僅支援 12 至 18 人進行分籤。` 
+                    });
+                    return;
+                }
+
+                let buckets = [[], [], []]; 
+
+                const fullGroups = bindingGroups.filter(g => g.members.length === 6);
+                const partialGroups = bindingGroups.filter(g => g.members.length < 6);
+                const boundIds = new Set(bindingGroups.flatMap(g => g.members));
+                const soloPlayers = players.filter(p => !boundIds.has(p.id));
+
+                const shuffledFullGroups = [...fullGroups].sort(() => Math.random() - 0.5);
+                shuffledFullGroups.forEach((group, idx) => {
+                    if (idx < 3) {
+                        buckets[idx] = group.members.map(id => players.find(p => p.id === id));
+                    }
+                });
+
+                const shuffledPartials = [...partialGroups].sort(() => Math.random() - 0.5);
+                const countFemales = (ids) => ids.filter(id => players.find(p => p.id === id)?.gender === '女').length;
+
+                const sortedPartials = shuffledPartials.sort((a, b) => {
+                    const femaleA = countFemales(a.members);
+                    const femaleB = countFemales(b.members);
+                    if (femaleB !== femaleA) return femaleB - femaleA;
+                    return b.members.length - a.members.length;
+                });
+
+                for (const group of sortedPartials) {
+                    const groupSize = group.members.length;
+                    let validBucketIndices = [0, 1, 2].filter(i => buckets[i].length + groupSize <= 6);
+                    
+                    if (validBucketIndices.length === 0) {
+                        setAlertMsg({ title: "分組失敗", msg: "綁定群組過多，導致無法填滿隊伍。請嘗試解散部分 2人或3人 的群組。" });
                         return;
                     }
-                }
 
-                if (!name || !gender) {
-                    showAlert('第' + (i + 1) + '行格式錯誤：' + line, '⚠️');
-                    return;
-                }
+                    let bestBucketIndex = -1;
+                    let minSizeInBucket = 999;
+                    let minFemalesInBucket = 999;
 
-                players.push({ name, gender, id: i });
-            }
+                    const randomizedValidIndices = validBucketIndices.sort(() => Math.random() - 0.5);
 
-            renderPlayers();
-            showAlert('✓ 名單匯入成功！共18人', '✅');
-        }
+                    for (const idx of randomizedValidIndices) {
+                        const currentBucket = buckets[idx];
+                        const currentFemales = currentBucket.filter(p => p.gender === '女').length;
+                        const currentSize = currentBucket.length;
 
-        function renderPlayers() {
-            const display = document.getElementById('playersDisplay');
-            display.innerHTML = '';
-
-            const unboundPlayers = players.filter(p => !isPlayerInGroup(p.id));
-            const females = unboundPlayers.filter(p => p.gender === '女');
-            const males = unboundPlayers.filter(p => p.gender === '男');
-
-            if (females.length > 0) {
-                const femaleGroup = document.createElement('div');
-                femaleGroup.className = 'gender-group';
-                femaleGroup.innerHTML = `
-                    <div class="gender-group-header">
-                        <div class="gender-group-title">
-                            <div class="gender-icon female">♀</div>
-                            <span>女生</span>
-                        </div>
-                        <div class="gender-count">${females.length} 人</div>
-                    </div>
-                    <div class="players-grid" id="femaleGrid"></div>
-                `;
-                display.appendChild(femaleGroup);
-
-                const femaleGrid = femaleGroup.querySelector('#femaleGrid');
-                females.forEach(player => femaleGrid.appendChild(createPlayerChip(player)));
-            }
-
-            if (males.length > 0) {
-                const maleGroup = document.createElement('div');
-                maleGroup.className = 'gender-group';
-                maleGroup.innerHTML = `
-                    <div class="gender-group-header">
-                        <div class="gender-group-title">
-                            <div class="gender-icon male">♂</div>
-                            <span>男生</span>
-                        </div>
-                        <div class="gender-count">${males.length} 人</div>
-                    </div>
-                    <div class="players-grid" id="maleGrid"></div>
-                `;
-                display.appendChild(maleGroup);
-
-                const maleGrid = maleGroup.querySelector('#maleGrid');
-                males.forEach(player => maleGrid.appendChild(createPlayerChip(player)));
-            }
-        }
-
-        function createPlayerChip(player) {
-            const chip = document.createElement('div');
-            chip.className = 'player-chip';
-
-            if (bindingMode) {
-                if (player.id === currentBindingPlayer) {
-                    chip.classList.add('binding-active');
-                } else {
-                    chip.classList.add('selectable');
-                    if (selectedPlayers.includes(player.id)) {
-                        chip.classList.add('selected');
-                    }
-                    chip.onclick = () => togglePlayerSelection(player.id);
-                }
-            }
-
-            const genderClass = player.gender === '女' ? 'female' : 'male';
-            const genderSymbol = player.gender === '女' ? '♀' : '♂';
-
-            chip.innerHTML = `
-                <div class="gender-badge ${genderClass}">${genderSymbol}</div>
-                <div class="player-name">${player.name}</div>
-                ${!bindingMode ? `<div class="link-icon" onclick="startBinding(${player.id})">🔗</div>` : ''}
-                ${bindingMode && player.id !== currentBindingPlayer ? '<div class="add-icon">+</div>' : ''}
-            `;
-
-            return chip;
-        }
-
-        function isPlayerInGroup(playerId) {
-            return bindingGroups.some(group => group.members.includes(playerId));
-        }
-
-        function startBinding(playerId) {
-            if (isPlayerInGroup(playerId)) {
-                showAlert('此球友已在綁定群組中', '⚠️');
-                return;
-            }
-
-            if (!hasShownBindingReminder) {
-                showAlert('如為臨打場次，綁定隊友需徵得球友們的同意，確保大家都有良好的打球體驗喔！', 'ℹ️', true);
-                hasShownBindingReminder = true;
-                setTimeout(() => activateBindingMode(playerId), 100);
-            } else {
-                activateBindingMode(playerId);
-            }
-        }
-
-        function activateBindingMode(playerId) {
-            bindingMode = true;
-            currentBindingPlayer = playerId;
-            selectedPlayers = [];
-            renderPlayers();
-            updateBindingControlBar();
-            document.getElementById('bindingControlBar').classList.add('active');
-        }
-
-        function togglePlayerSelection(playerId) {
-            if (!bindingMode) return;
-
-            const index = selectedPlayers.indexOf(playerId);
-            if (index > -1) {
-                selectedPlayers.splice(index, 1);
-            } else {
-                if (selectedPlayers.length >= 5) {
-                    showAlert('一隊只有六個人，沒辦法綁定七個人喔！', '⚠️');
-                    return;
-                }
-                selectedPlayers.push(playerId);
-            }
-
-            renderPlayers();
-            updateBindingControlBar();
-        }
-
-        function updateBindingControlBar() {
-            const totalSelected = selectedPlayers.length + 1;
-            document.getElementById('bindingInfo').textContent = '已選擇 ' + totalSelected + ' 人';
-        }
-
-        function confirmBinding() {
-            if (selectedPlayers.length === 0) {
-                showAlert('請至少選擇一位隊友', '⚠️');
-                return;
-            }
-
-            const allMembers = [currentBindingPlayer, ...selectedPlayers];
-            const females = allMembers.filter(id => players.find(p => p.id === id).gender === '女').length;
-            const males = allMembers.filter(id => players.find(p => p.id === id).gender === '男').length;
-
-            const totalFemales = players.filter(p => p.gender === '女').length;
-            const avgFemalesPerTeam = Math.ceil(totalFemales / 3);
-
-            if (females > avgFemalesPerTeam) {
-                showWarningAlert('女生數量高於其他隊伍，請提前告知其他球友喔！', () => {
-                    createBindingGroup(allMembers, females, males);
-                });
-            } else {
-                createBindingGroup(allMembers, females, males);
-            }
-        }
-
-        function createBindingGroup(members, females, males) {
-            bindingGroups.push({ members, females, males });
-            exitBindingMode();
-            renderBindingGroups();
-            renderPlayers();
-        }
-
-        function cancelBinding() {
-            exitBindingMode();
-            renderPlayers();
-        }
-
-        function exitBindingMode() {
-            bindingMode = false;
-            currentBindingPlayer = null;
-            selectedPlayers = [];
-            document.getElementById('bindingControlBar').classList.remove('active');
-        }
-
-        function renderBindingGroups() {
-            const container = document.getElementById('bindingGroups');
-            container.innerHTML = '';
-
-            bindingGroups.forEach((group, groupIndex) => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'binding-group';
-
-                const membersList = group.members.map(id => {
-                    const player = players.find(p => p.id === id);
-                    const genderClass = player.gender === '女' ? 'female' : 'male';
-                    const genderSymbol = player.gender === '女' ? '♀' : '♂';
-                    return `
-                        <div class="binding-member">
-                            <div class="gender-badge ${genderClass}">${genderSymbol}</div>
-                            <span>${player.name}</span>
-                            <button class="remove-member-btn" onclick="removeMemberFromGroup(${groupIndex}, ${id})">×</button>
-                        </div>
-                    `;
-                }).join('');
-
-                const warningText = group.members.length === 6 
-                    ? '<div class="full-team-warning">⚠️ 因為已經綁定六人同隊，抽籤將自動列入低順位，將維持在C隊喔</div>'
-                    : '';
-
-                groupDiv.innerHTML = `
-                    <div class="binding-group-header">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div class="binding-group-title">🔗 綁定群組 ${groupIndex + 1}</div>
-                            <div class="gender-stats">${group.females}女 ${group.males}男</div>
-                        </div>
-                        <button class="remove-group-btn" onclick="removeBindingGroup(${groupIndex})">解散群組</button>
-                    </div>
-                    <div class="binding-members">${membersList}</div>
-                    ${warningText}
-                `;
-
-                container.appendChild(groupDiv);
-            });
-        }
-
-        function removeMemberFromGroup(groupIndex, playerId) {
-            const group = bindingGroups[groupIndex];
-            group.members = group.members.filter(id => id !== playerId);
-
-            const player = players.find(p => p.id === playerId);
-            if (player.gender === '女') {
-                group.females--;
-            } else {
-                group.males--;
-            }
-
-            if (group.members.length === 0) {
-                bindingGroups.splice(groupIndex, 1);
-            }
-
-            renderBindingGroups();
-            renderPlayers();
-        }
-
-        function removeBindingGroup(groupIndex) {
-            bindingGroups.splice(groupIndex, 1);
-            renderBindingGroups();
-            renderPlayers();
-        }
-
-        function drawTeams() {
-            if (players.length !== 18) {
-                showAlert('請先匯入18位參加者名單！', '⚠️');
-                return;
-            }
-
-            const matchType = document.getElementById('matchType').value;
-            let teamA = [], teamB = [], teamC = [];
-
-            const fullTeamGroups = bindingGroups.filter(g => g.members.length === 6);
-            const partialGroups = bindingGroups.filter(g => g.members.length < 6);
-
-            if (fullTeamGroups.length === 1) {
-                teamC = fullTeamGroups[0].members.map(id => players.find(p => p.id === id));
-            } else if (fullTeamGroups.length >= 2) {
-                const shuffledFull = fullTeamGroups.sort(() => Math.random() - 0.5);
-                teamA = shuffledFull[0].members.map(id => players.find(p => p.id === id));
-                teamB = shuffledFull[1].members.map(id => players.find(p => p.id === id));
-                if (shuffledFull[2]) {
-                    teamC = shuffledFull[2].members.map(id => players.find(p => p.id === id));
-                }
-            }
-
-            const teams = [teamA, teamB, teamC].filter(t => t.length === 0);
-            const shuffledPartial = partialGroups.sort(() => Math.random() - 0.5);
-
-            shuffledPartial.forEach(group => {
-                if (teams.length > 0) {
-                    const targetTeam = teams.shift();
-                    targetTeam.push(...group.members.map(id => players.find(p => p.id === id)));
-                    if (targetTeam === teamA) teamA = targetTeam;
-                    else if (targetTeam === teamB) teamB = targetTeam;
-                    else teamC = targetTeam;
-                    if (targetTeam.length < 6) teams.push(targetTeam);
-                }
-            });
-
-            const boundPlayerIds = bindingGroups.flatMap(g => g.members);
-            const unboundPlayers = players.filter(p => !boundPlayerIds.includes(p.id));
-
-            if (matchType === '女網混排') {
-                fillTeamsWomenMix(teamA, teamB, teamC, unboundPlayers);
-            } else {
-                fillTeamsMenMix(teamA, teamB, teamC, unboundPlayers);
-            }
-
-            displayTeams(teamA, teamB, teamC);
-        }
-
-        function fillTeamsWomenMix(teamA, teamB, teamC, unboundPlayers) {
-            const females = unboundPlayers.filter(p => p.gender === '女').sort(() => Math.random() - 0.5);
-            const males = unboundPlayers.filter(p => p.gender === '男').sort(() => Math.random() - 0.5);
-            const teams = [teamA, teamB, teamC];
-
-            while (females.length > 0 || males.length > 0) {
-                for (let team of teams) {
-                    if (team.length < 6) {
-                        const femaleCount = team.filter(p => p.gender === '女').length;
-                        const needMoreFemales = femaleCount < 2 && females.length > 0;
-
-                        if (needMoreFemales && females.length > 0) {
-                            team.push(females.shift());
-                        } else if (males.length > 0) {
-                            team.push(males.shift());
-                        } else if (females.length > 0) {
-                            team.push(females.shift());
+                        if (currentSize < minSizeInBucket) {
+                            minSizeInBucket = currentSize;
+                            minFemalesInBucket = currentFemales;
+                            bestBucketIndex = idx;
+                        } else if (currentSize === minSizeInBucket) {
+                            if (currentFemales < minFemalesInBucket) {
+                                minFemalesInBucket = currentFemales;
+                                bestBucketIndex = idx;
+                            }
                         }
                     }
+
+                    const groupPlayers = group.members.map(id => players.find(p => p.id === id));
+                    buckets[bestBucketIndex].push(...groupPlayers);
                 }
-            }
-        }
 
-        function fillTeamsMenMix(teamA, teamB, teamC, unboundPlayers) {
-            const shuffled = unboundPlayers.sort(() => Math.random() - 0.5);
-            const teams = [teamA, teamB, teamC];
+                let remainingSolo = [...soloPlayers];
+                const soloFemales = remainingSolo.filter(p => p.gender === "女").sort(() => Math.random() - 0.5);
+                const soloMales = remainingSolo.filter(p => p.gender === "男").sort(() => Math.random() - 0.5);
 
-            shuffled.forEach(player => {
-                for (let team of teams) {
-                    if (team.length < 6) {
-                        team.push(player);
-                        break;
+                while (soloFemales.length > 0 || soloMales.length > 0) {
+                    const currentSizes = buckets.map(b => b.length);
+                    const minSize = Math.min(...currentSizes);
+
+                    let candidates = buckets
+                        .map((b, i) => ({ index: i, count: b.length, females: b.filter(p => p.gender === '女').length }))
+                        .filter(s => s.count === minSize && s.count < 6);
+
+                    if (candidates.length === 0) {
+                        candidates = buckets
+                            .map((b, i) => ({ index: i, count: b.length, females: b.filter(p => p.gender === '女').length }))
+                            .filter(s => s.count < 6);
+                    }
+
+                    if (candidates.length === 0) break;
+
+                    candidates.sort((a, b) => {
+                        if (a.females !== b.females) return a.females - b.females;
+                        return Math.random() - 0.5;
+                    });
+
+                    const targetSlot = candidates[0];
+                    const bucket = buckets[targetSlot.index];
+
+                    let charToAdd;
+
+                    if (matchType === "女網混排") {
+                        if (soloFemales.length > 0) {
+                            charToAdd = soloFemales.shift();
+                        } else {
+                            charToAdd = soloMales.shift();
+                        }
+                    } else {
+                        const pool = [...soloFemales, ...soloMales];
+                        if (pool.length > 0) {
+                            const randIdx = Math.floor(Math.random() * pool.length);
+                            charToAdd = pool[randIdx];
+                            if (charToAdd.gender === '女') {
+                                const idx = soloFemales.findIndex(p => p.id === charToAdd.id);
+                                if (idx > -1) soloFemales.splice(idx, 1);
+                            } else {
+                                const idx = soloMales.findIndex(p => p.id === charToAdd.id);
+                                if (idx > -1) soloMales.splice(idx, 1);
+                            }
+                        }
+                    }
+                    
+                    if (charToAdd) {
+                        bucket.push(charToAdd);
                     }
                 }
-            });
-        }
 
-        function displayTeams(teamA, teamB, teamC) {
-            const teams = [
-                { name: 'A隊', members: teamA },
-                { name: 'B隊', members: teamB },
-                { name: 'C隊', members: teamC }
-            ];
+                setTeams([
+                    { id: "A", name: "A 隊", members: buckets[0] },
+                    { id: "B", name: "B 隊", members: buckets[1] },
+                    { id: "C", name: "C 隊", members: buckets[2] },
+                ]);
+                setView("results");
+            };
 
-            const grid = document.getElementById('teamsGrid');
-            grid.innerHTML = '';
+            return (
+                <div className="min-h-screen pb-20 font-sans text-[#474747] bg-[#efefef]">
+                {/* Header */}
+                <header className="pt-10 pb-8 px-4 text-center">
+                    <h1 className="text-3xl font-bold mb-2 tracking-wide text-[#474747] flex items-center justify-center gap-2">
+                        球館臨打分籤系統
+                    </h1>
+                    <p className="text-[#888888] text-sm font-medium tracking-wider">SMART DRAW SYSTEM</p>
+                </header>
 
-            teams.forEach(team => {
-                const card = document.createElement('div');
-                card.className = 'team-card';
+                {/* Main Content */}
+                <main className="max-w-4xl mx-auto px-4">
+                    
+                    {/* VIEW: INPUT & CONFIG */}
+                    {view === "input" && (
+                        <div className="space-y-6 animate-fade-in">
+                            {/* 1. Import Section */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-bold flex items-center gap-2 text-[#474747]">
+                                        <UsersIcon className="w-5 h-5 text-[#474747]" />
+                                        參加者名單 ({players.length}人)
+                                    </h2>
+                                    {players.length > 0 && (
+                                        <button 
+                                            onClick={() => { setPlayers([]); setInputText(""); setBindingGroups([]); }}
+                                            className="text-xs text-gray-400 hover:text-[#D4A2A6] transition-colors"
+                                        >
+                                            清除全部
+                                        </button>
+                                    )}
+                                </div>
+                            
+                                <div className="relative">
+                                    <textarea
+                                        className="w-full h-32 p-4 border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#474747] focus:border-[#474747] outline-none resize-none text-sm bg-[#fafafa] transition-all text-[#474747] placeholder-gray-400"
+                                        placeholder="貼上名單（每行一位，格式：王小明男 或 Amy 女）..."
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        onBlur={handleImport} 
+                                    />
+                                    <div className="absolute bottom-3 right-3">
+                                        <button 
+                                            onClick={handleImport}
+                                            className="bg-[#474747] text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-[#2d2d2d] transition tracking-wide"
+                                        >
+                                            更新名單
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2 text-right">支援 12 ~ 18 人分籤</p>
+                            </div>
+
+                            {/* 2. Player Interaction Area */}
+                            {players.length > 0 && (
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                    
+                                    {/* Stats Bar */}
+                                    <div className="flex items-center justify-between bg-[#f9f9f9] rounded-lg p-3 mb-6 border border-gray-100">
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-sm font-bold text-[#474747]">
+                                                總計 <span className="text-lg">{players.length}</span> 人
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <div className="flex items-center gap-1 font-medium text-[#7F8F8E]">
+                                                <span>♂</span>
+                                                <span>{malePlayers.length} 男</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 font-medium text-[#D4A2A6]">
+                                                <span>♀</span>
+                                                <span>{femalePlayers.length} 女</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                                        <h2 className="text-lg font-bold text-[#474747] flex items-center gap-2">
+                                            <LinkIcon className="w-5 h-5 text-[#474747]" />
+                                            綁定隊友
+                                        </h2>
+                                        <div className="text-xs text-[#888] bg-[#f5f5f5] px-3 py-1 rounded-full font-medium">
+                                            {selectedPlayerIds.length > 0 ? `已選擇 ${selectedPlayerIds.length} 人` : "點擊球員以選取，支援 2/3/6 人綁定"}
+                                        </div>
+                                    </div>
+
+                                    {/* Female Section */}
+                                    {femalePlayers.length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="text-sm font-bold text-[#D4A2A6] mb-2 flex items-center justify-between border-l-4 border-[#D4A2A6] pl-2">
+                                                <span>女生</span>
+                                                <span className="text-xs bg-[#D4A2A6]/10 px-2 py-0.5 rounded">共 {femalePlayers.length} 女</span>
+                                            </h3>
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                                {femalePlayers.map((player) => (
+                                                    <PlayerCard 
+                                                        key={player.id} 
+                                                        player={player} 
+                                                        isSelected={selectedPlayerIds.includes(player.id)}
+                                                        onClick={() => toggleSelection(player.id)}
+                                                        bindingGroups={bindingGroups}
+                                                        onDissolve={dissolveGroup}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Male Section */}
+                                    {malePlayers.length > 0 && (
+                                        <div>
+                                            <h3 className="text-sm font-bold text-[#7F8F8E] mb-2 flex items-center justify-between border-l-4 border-[#7F8F8E] pl-2">
+                                                <span>男生</span>
+                                                <span className="text-xs bg-[#7F8F8E]/10 px-2 py-0.5 rounded">共 {malePlayers.length} 男</span>
+                                            </h3>
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                                {malePlayers.map((player) => (
+                                                    <PlayerCard 
+                                                        key={player.id} 
+                                                        player={player} 
+                                                        isSelected={selectedPlayerIds.includes(player.id)}
+                                                        onClick={() => toggleSelection(player.id)}
+                                                        bindingGroups={bindingGroups}
+                                                        onDissolve={dissolveGroup}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Action Bar for Binding */}
+                                    <div className={`mt-6 flex justify-end transition-all duration-300 ${selectedPlayerIds.length > 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}>
+                                        <button
+                                            onClick={createGroup}
+                                            className="flex items-center gap-2 bg-[#474747] text-white px-6 py-2 rounded shadow-md hover:bg-[#2d2d2d] transition text-sm font-bold tracking-wide"
+                                        >
+                                            <LinkIcon className="w-4 h-4" />
+                                            綁定 {selectedPlayerIds.length} 人
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 3. Settings & Draw */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                                    <div className="flex items-center gap-4 w-full md:w-auto">
+                                        <label className="text-[#474747] font-bold text-sm whitespace-nowrap">賽制偏好</label>
+                                        <div className="relative w-full md:w-48">
+                                            <select 
+                                                value={matchType}
+                                                onChange={(e) => setMatchType(e.target.value)}
+                                                className="w-full p-2.5 bg-[#f5f5f5] border border-gray-200 rounded text-sm text-[#474747] focus:outline-none focus:border-[#474747] appearance-none cursor-pointer"
+                                            >
+                                                <option value="女網混排">女網混排 (平衡女生)</option>
+                                                <option value="男網混排">男網混排 (隨機分配)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={drawTeams}
+                                        disabled={players.length === 0}
+                                        className={`
+                                            w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded text-sm font-bold tracking-wider shadow-sm
+                                            ${players.length >= 12 && players.length <= 18 ? "bg-[#474747] text-white hover:bg-[#2d2d2d]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}
+                                            transition-all duration-200
+                                        `}
+                                    >
+                                        <Wand2Icon className="w-4 h-4" />
+                                        開始分籤
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* VIEW: RESULTS */}
+                    {view === "results" && (
+                        <div className="space-y-6 pb-20 animate-fade-in">
+                            <div className="flex items-center justify-between mb-4">
+                                <button
+                                    onClick={() => setView("input")}
+                                    className="text-[#888] hover:text-[#474747] flex items-center gap-1 text-sm font-bold transition"
+                                >
+                                    ← 返回編輯
+                                </button>
+                                <button
+                                    onClick={drawTeams}
+                                    className="bg-[#474747] text-white px-4 py-2 rounded text-sm font-bold shadow-md hover:bg-[#2d2d2d] transition flex items-center gap-2"
+                                >
+                                    <RefreshCcwIcon className="w-4 h-4" />
+                                    重新抽籤
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {teams.map((team, idx) => (
+                                    <div key={team.id} className="bg-white rounded border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+                                        {/* Team Header - Uniform Color */}
+                                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-[#474747] text-white">
+                                            <h3 className="text-xl font-bold tracking-wider">{team.name}</h3>
+                                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-mono">{team.members.length}人</span>
+                                        </div>
+
+                                        {/* Team Members */}
+                                        <div className="p-4 flex-1">
+                                            <ul className="space-y-3">
+                                                {team.members.sort((a,b) => (a.gender === '女' ? -1 : 1)).map((member) => (
+                                                    <li key={member.id} className="flex items-center pb-2 border-b border-gray-50 last:border-0 last:pb-0">
+                                                        <GenderIcon gender={member.gender} />
+                                                        <span className="text-[#474747] font-medium text-sm">{member.name}</span>
+                                                    </li>
+                                                ))}
+                                                {/* Empty slots placeholders if team is not full (e.g. only 4 people) */}
+                                                {Array.from({ length: 6 - team.members.length }).map((_, i) => (
+                                                    <li key={`empty-${i}`} className="flex items-center pb-2 border-b border-gray-50 last:border-0 last:pb-0 opacity-30">
+                                                        <span className="w-5 h-5 rounded-full border border-dashed border-gray-400 mr-2"></span>
+                                                        <span className="text-gray-400 font-medium text-sm italic">空位</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Match Info Card */}
+                            <div className="bg-white border-l-4 border-[#474747] rounded shadow-sm p-5 mt-8 flex gap-4">
+                                <InfoIcon className="w-6 h-6 text-[#474747] flex-shrink-0" />
+                                <div>
+                                    <h4 className="font-bold text-[#474747] mb-1">賽制說明</h4>
+                                    <p className="text-sm text-[#888] leading-relaxed">
+                                        A、B 兩隊先上場進行比賽。C 隊成員請協助計分，並準備下一輪輪替。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </main>
                 
-                const sortedMembers = team.members.sort((a, b) => {
-                    if (a.gender === '女' && b.gender === '男') return -1;
-                    if (a.gender === '男' && b.gender === '女') return 1;
-                    return 0;
-                });
-                
-                const membersList = sortedMembers.map(m => {
-                    const genderClass = m.gender === '女' ? 'female' : 'male';
-                    const genderSymbol = m.gender === '女' ? '♀' : '♂';
-                    return `
-                        <li>
-                            <span class="member-gender ${genderClass}">${genderSymbol}</span>
-                            ${m.name}
-                        </li>
-                    `;
-                }).join('');
-
-                card.innerHTML = `
-                    <div class="team-header">
-                        <div class="team-name">${team.name}</div>
-                        <div class="team-count">${team.members.length}人</div>
+                {/* Alert Modal */}
+                {alertMsg && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#474747]/80 backdrop-blur-sm animate-fade-in">
+                        <div className="bg-white rounded p-6 w-full max-w-sm shadow-xl transform transition-all scale-100">
+                            <div className="flex items-center gap-2 mb-3 text-[#474747]">
+                                <AlertCircleIcon className="w-6 h-6" />
+                                <h3 className="text-lg font-bold text-[#474747]">{alertMsg.title}</h3>
+                            </div>
+                            <p className="text-[#666] mb-6 text-sm leading-relaxed">{alertMsg.msg}</p>
+                            <button 
+                                onClick={() => setAlertMsg(null)}
+                                className="w-full bg-[#474747] text-white font-bold py-2.5 rounded hover:bg-[#2d2d2d] transition tracking-wide text-sm"
+                            >
+                                我知道了
+                            </button>
+                        </div>
                     </div>
-                    <ul class="team-members">${membersList}</ul>
-                `;
-                grid.appendChild(card);
-            });
+                )}
+                </div>
+            );
+        };
 
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-            document.getElementById('drawBtnText').textContent = '🔄 重新分籤';
-        }
-
-        function showAlert(message, icon, isInfo = false) {
-            document.getElementById('alertIcon').textContent = icon;
-            document.getElementById('alertTitle').textContent = isInfo ? '溫馨提醒' : '提示';
-            document.getElementById('alertMessage').textContent = message;
-            
-            const alertCard = document.getElementById('alertCard');
-            alertCard.classList.remove('warning');
-            
-            document.getElementById('alertButtons').innerHTML = '<button class="alert-confirm-btn" onclick="closeAlert()">確認</button>';
-            document.getElementById('alertModal').style.display = 'block';
-        }
-
-        function showWarningAlert(message, onConfirm) {
-            document.getElementById('alertIcon').textContent = '⚠️';
-            document.getElementById('alertTitle').textContent = '警告';
-            document.getElementById('alertMessage').textContent = message;
-            
-            const alertCard = document.getElementById('alertCard');
-            alertCard.classList.add('warning');
-            
-            document.getElementById('alertButtons').innerHTML = `
-                <button class="alert-cancel-btn" onclick="closeAlert()">取消</button>
-                <button class="alert-confirm-btn" onclick="confirmWarning()">確認繼續</button>
-            `;
-            
-            window.pendingConfirm = onConfirm;
-            document.getElementById('alertModal').style.display = 'block';
-        }
-
-        function confirmWarning() {
-            closeAlert();
-            if (window.pendingConfirm) {
-                window.pendingConfirm();
-                window.pendingConfirm = null;
-            }
-        }
-
-        function closeAlert() {
-            document.getElementById('alertModal').style.display = 'none';
-            document.getElementById('alertCard').classList.remove('warning');
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
+
